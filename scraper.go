@@ -4,11 +4,13 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"net/url"
 	"strconv"
 	"strings"
 
+	"github.com/PuerkitoBio/goquery"
 	"github.com/gocolly/colly"
 )
 
@@ -68,7 +70,36 @@ func generateBody(typeName int, calendarID int) *strings.Reader {
 	return strings.NewReader(body)
 }
 
+func parseHTML(htmlString string) {
+	doc, err := goquery.NewDocumentFromReader(strings.NewReader(htmlString))
+	if err != nil {
+		log.Fatal("Error loading HTML: ", err)
+	}
+	// Find each time slot and print its date and time
+	doc.Find(".choose-time").Each(func(i int, s *goquery.Selection) {
+		// For each .choose-time, find the associated date
+		date := s.Parent().Find(".date-secondary").Text()
+		dayOfWeek := s.Parent().Find(".day-of-week").Text()
+
+		fmt.Printf("Date: %s, %s\n", dayOfWeek, date)
+
+		// Now, find each time within this date
+		s.Find(".time-selection").Each(func(j int, timeSelection *goquery.Selection) {
+			timeValue, exists := timeSelection.Attr("value")
+			if exists {
+				fmt.Println("Time:", timeValue)
+			}
+		})
+	})
+
+}
+
 func main() {
+	/**
+	get all of the date.date-heading.date-secondary: March 28
+		get all of date.choose-time.form-inline.label: 10am
+
+	*/
 
 	typeToCalendars := map[int]Calendar{
 		58324142: {9651874, "Studio B"},
@@ -94,7 +125,7 @@ func main() {
 
 	c.OnScraped(func(r *colly.Response) {
 		fmt.Println(r.Request.URL, " scraped!")
-		fmt.Println("Response body:", string(r.Body))
+		parseHTML(string(r.Body))
 	})
 
 	baseURL := "https://app.acuityscheduling.com/schedule.php?action=showCalendar&fulldate=1&owner=30525417&template=weekly"
