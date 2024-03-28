@@ -60,10 +60,37 @@ func parseHTML(htmlString string) {
 			}
 		})
 	})
-
 }
 
 func main() {
+	/*
+
+
+		Availability {
+			id string
+			time string
+			day string
+			studios: list[string]
+		}
+
+		list by day in ascending order
+		day
+			list of times
+				list of studios
+
+		map[day]map[time][]string
+
+		iterate over each day
+			print the day
+			iterate over each time print
+				print the time
+				print the studios
+
+
+	*/
+
+	// map[day]map[time][]string
+	timeToStudios := map[string]map[string][]string{}
 
 	typeToCalendars := map[int]Calendar{
 		58324142: {9651874, "Studio B"},
@@ -97,7 +124,9 @@ func main() {
 	})
 
 	c.OnScraped(func(r *colly.Response) {
+		// how do get the studio name?
 		fmt.Println(r.Request.URL, " scraped!")
+		fmt.Println(r.Request.Body)
 		parseHTML(string(r.Body))
 	})
 
