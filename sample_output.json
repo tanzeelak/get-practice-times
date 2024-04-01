@@ -1,0 +1,299 @@
+{
+    "Date: Friday, April  5": {
+        "10:00": [
+            "Studio 5",
+            "Studio D"
+        ],
+        "11:00": [
+            "Studio 5",
+            "Studio D"
+        ],
+        "12:00": [
+            "Studio 5"
+        ]
+    },
+    "Date: Monday, April  1": {
+        "10:00": [
+            "Studio 4",
+            "Studio 12",
+            "Cottage Studio",
+            "Concert Hall",
+            "Studio 1",
+            "Studio 3",
+            "Studio 7",
+            "Studio B",
+            "Studio 2",
+            "Studio 9",
+            "Studio 11",
+            "Recital Hall"
+        ],
+        "11:00": [
+            "Studio 4",
+            "Studio 12",
+            "Cottage Studio",
+            "Concert Hall",
+            "Studio 3",
+            "Studio 7",
+            "Studio B"
+        ],
+        "12:00": [
+            "Studio 12",
+            "Cottage Studio",
+            "Concert Hall",
+            "Studio 1",
+            "Studio 3",
+            "Studio 7"
+        ],
+        "13:00": [
+            "Studio 4",
+            "Studio 12",
+            "Cottage Studio",
+            "Concert Hall",
+            "Studio 1",
+            "Studio 10"
+        ],
+        "14:00": [
+            "Cottage Studio",
+            "Concert Hall",
+            "Studio B",
+            "Recital Hall"
+        ],
+        "15:00": [
+            "Concert Hall"
+        ],
+        "16:00": [
+            "Cottage Studio",
+            "Concert Hall"
+        ],
+        "17:00": [
+            "Concert Hall"
+        ],
+        "18:00": [
+            "Concert Hall"
+        ],
+        "19:00": [
+            "Concert Hall",
+            "Studio 9"
+        ],
+        "20:00": [
+            "Studio C",
+            "Concert Hall",
+            "Studio B"
+        ]
+    },
+    "Date: Monday, April  8": {
+        "10:00": [
+            "Studio 9"
+        ],
+        "19:00": [
+            "Studio 9"
+        ],
+        "20:00": [
+            "Studio 9"
+        ]
+    },
+    "Date: Thursday, April  4": {
+        "10:00": [
+            "Studio 8",
+            "Studio B",
+            "Studio E",
+            "Recital Hall"
+        ],
+        "11:00": [
+            "Studio 8",
+            "Studio B",
+            "Studio E",
+            "Recital Hall"
+        ],
+        "12:00": [
+            "Studio 8",
+            "Studio B",
+            "Studio E",
+            "Recital Hall"
+        ],
+        "13:00": [
+            "Studio E",
+            "Recital Hall"
+        ],
+        "14:00": [
+            "Studio E",
+            "Recital Hall"
+        ],
+        "15:00": [
+            "Studio E",
+            "Recital Hall"
+        ],
+        "20:00": [
+            "Studio 4"
+        ]
+    },
+    "Date: Tuesday, April  2": {
+        "10:00": [
+            "Studio 8",
+            "Studio 12",
+            "Studio C",
+            "Cottage Studio",
+            "Concert Hall",
+            "Studio 1",
+            "Studio 3",
+            "Studio 7",
+            "Studio 10",
+            "Studio B",
+            "Studio E",
+            "Studio 2",
+            "Studio 5",
+            "Studio 11",
+            "Recital Hall"
+        ],
+        "11:00": [
+            "Studio 12",
+            "Studio C",
+            "Cottage Studio",
+            "Concert Hall",
+            "Studio 7",
+            "Studio 10",
+            "Studio B",
+            "Studio E",
+            "Studio 2",
+            "Studio 5",
+            "Studio 11",
+            "Recital Hall"
+        ],
+        "12:00": [
+            "Studio 12",
+            "Studio C",
+            "Cottage Studio",
+            "Concert Hall",
+            "Studio 7",
+            "Studio B",
+            "Studio E",
+            "Studio 11",
+            "Recital Hall"
+        ],
+        "13:00": [
+            "Studio 12",
+            "Studio C",
+            "Cottage Studio",
+            "Concert Hall",
+            "Studio 7",
+            "Studio B",
+            "Studio E",
+            "Recital Hall"
+        ],
+        "14:00": [
+            "Studio C",
+            "Cottage Studio",
+            "Concert Hall",
+            "Studio B",
+            "Recital Hall"
+        ],
+        "15:00": [
+            "Studio 12",
+            "Studio C",
+            "Cottage Studio",
+            "Concert Hall"
+        ],
+        "16:00": [
+            "Studio 12",
+            "Studio C",
+            "Concert Hall"
+        ],
+        "17:00": [
+            "Studio 12",
+            "Studio C",
+            "Concert Hall"
+        ],
+        "18:00": [
+            "Concert Hall"
+        ],
+        "19:00": [
+            "Studio C",
+            "Concert Hall",
+            "Studio D"
+        ],
+        "20:00": [
+            "Concert Hall",
+            "Studio 7",
+            "Studio 10",
+            "Studio D"
+        ]
+    },
+    "Date: Wednesday, April  3": {
+        "10:00": [
+            "Studio 8",
+            "Studio 4",
+            "Studio 12",
+            "Studio C",
+            "Cottage Studio",
+            "Concert Hall",
+            "Studio 1",
+            "Studio 3",
+            "Studio 7",
+            "Studio 10",
+            "Studio E",
+            "Studio 2",
+            "Studio 5",
+            "Studio 9",
+            "Studio 11",
+            "Studio D"
+        ],
+        "11:00": [
+            "Studio 4",
+            "Studio 12",
+            "Studio C",
+            "Cottage Studio",
+            "Concert Hall",
+            "Studio 3",
+            "Studio 7",
+            "Studio 10",
+            "Studio 2",
+            "Studio 5",
+            "Studio 9",
+            "Studio D"
+        ],
+        "12:00": [
+            "Studio 12",
+            "Studio C",
+            "Cottage Studio",
+            "Concert Hall",
+            "Studio 10",
+            "Studio 5",
+            "Studio 9"
+        ],
+        "13:00": [
+            "Studio 4",
+            "Studio 12",
+            "Cottage Studio",
+            "Concert Hall"
+        ],
+        "14:00": [
+            "Concert Hall"
+        ],
+        "15:00": [
+            "Concert Hall"
+        ],
+        "16:00": [
+            "Concert Hall"
+        ],
+        "17:00": [
+            "Studio 12",
+            "Studio D"
+        ],
+        "18:00": [
+            "Studio 12",
+            "Studio D"
+        ],
+        "19:00": [
+            "Studio 12",
+            "Studio 7",
+            "Studio D"
+        ],
+        "20:00": [
+            "Studio 12",
+            "Concert Hall",
+            "Studio 7",
+            "Studio 10",
+            "Studio D"
+        ]
+    }
+}
