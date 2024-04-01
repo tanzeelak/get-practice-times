@@ -46,7 +46,7 @@ func parseHTML(htmlString string, calendarID int, schedule map[string]map[string
 		date := s.Parent().Find(".date-secondary").Text()
 		dayOfWeek := s.Parent().Find(".day-of-week").Text()
 
-		fullDate := fmt.Sprintf("Date: %s, %s\n", dayOfWeek, date)
+		fullDate := fmt.Sprintf("Date: %s, %s", dayOfWeek, date)
 		// fmt.Println(fullDate)
 		// Now, find each time within this date
 		s.Find(".time-selection").Each(func(j int, timeSelection *goquery.Selection) {
