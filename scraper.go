@@ -3,6 +3,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -34,7 +35,7 @@ func generateBody(typeName int, calendarID int) *strings.Reader {
 	return strings.NewReader(body)
 }
 
-func parseHTML(htmlString string) {
+func parseHTML(htmlString string, calendarID int, schedule map[string]map[string][]int) map[string]map[string][]int {
 	/**
 	get all of the date.date-heading.date-secondary: March 28
 	get all of date.choose-time.form-inline.label: 10am
@@ -50,29 +51,49 @@ func parseHTML(htmlString string) {
 		date := s.Parent().Find(".date-secondary").Text()
 		dayOfWeek := s.Parent().Find(".day-of-week").Text()
 
-		fmt.Printf("Date: %s, %s\n", dayOfWeek, date)
-
+		fullDate := fmt.Sprintf("Date: %s, %s\n", dayOfWeek, date)
+		fmt.Println(fullDate)
 		// Now, find each time within this date
 		s.Find(".time-selection").Each(func(j int, timeSelection *goquery.Selection) {
 			timeValue, exists := timeSelection.Attr("value")
 			if exists {
 				fmt.Println("Time:", timeValue)
+				updateMap(fullDate, timeValue, calendarID, schedule)
 			}
 		})
 	})
+	return schedule
+}
+
+func updateMap(fullDate string, timeValue string, calendarID int, schedule map[string]map[string][]int) map[string]map[string][]int {
+	time := strings.Split(timeValue, " ")[1]
+	timeToStudios, ok := schedule[fullDate]
+	if !ok {
+		timeToStudios = make(map[string][]int)
+		schedule[fullDate] = timeToStudios
+	}
+	studios, ok := timeToStudios[time]
+	if !ok {
+		studios = []int{}
+		timeToStudios[time] = studios
+	}
+	schedule[fullDate][time] = append(studios, calendarID)
+	return schedule
+}
+
+func printSchedule(schedule map[string]map[string][]int) {
+	jsonData, err := json.MarshalIndent(schedule, "", "    ")
+	if err != nil {
+		log.Fatalf("Error occurred during marshaling. Error: %s", err.Error())
+	}
+	// Print the JSON string
+	fmt.Println(string(jsonData))
 }
 
 func main() {
+	calendarID := 0
+
 	/*
-
-
-		Availability {
-			id string
-			time string
-			day string
-			studios: list[string]
-		}
-
 		list by day in ascending order
 		day
 			list of times
@@ -89,28 +110,27 @@ func main() {
 
 	*/
 
-	// map[day]map[time][]string
-	timeToStudios := map[string]map[string][]string{}
+	schedule := map[string]map[string][]int{}
 
 	typeToCalendars := map[int]Calendar{
 		58324142: {9651874, "Studio B"},
-		54155578: {9651830, "Studio C"},
-		54535605: {9672985, "Studio D"},
-		58324342: {9672997, "Studio E"},
-		54535629: {9651036, "Cottage Studio"},
-		54535652: {9651030, "Recital Hall"},
-		58324504: {9650981, "Concert Hall"},
-		58324623: {9673379, "Studio 1"},
-		58324707: {9673424, "Studio 2"},
-		58324742: {9673434, "Studio 3"},
-		58324779: {9673444, "Studio 4"},
-		58324847: {9673455, "Studio 5"},
-		58324961: {9703524, "Studio 7"},
-		58324992: {9673461, "Studio 8"},
-		58325034: {9673482, "Studio 9"},
-		58325156: {9673493, "Studio 10"},
-		58325267: {9127354, "Studio 12"},
-		58325228: {9673015, "Studio 11"},
+		// 54155578: {9651830, "Studio C"},
+		// 54535605: {9672985, "Studio D"},
+		// 58324342: {9672997, "Studio E"},
+		// 54535629: {9651036, "Cottage Studio"},
+		// 54535652: {9651030, "Recital Hall"},
+		// 58324504: {9650981, "Concert Hall"},
+		// 58324623: {9673379, "Studio 1"},
+		// 58324707: {9673424, "Studio 2"},
+		// 58324742: {9673434, "Studio 3"},
+		// 58324779: {9673444, "Studio 4"},
+		// 58324847: {9673455, "Studio 5"},
+		// 58324961: {9703524, "Studio 7"},
+		// 58324992: {9673461, "Studio 8"},
+		// 58325034: {9673482, "Studio 9"},
+		// 58325156: {9673493, "Studio 10"},
+		// 58325267: {9127354, "Studio 12"},
+		// 58325228: {9673015, "Studio 11"},
 	}
 
 	c := colly.NewCollector()
@@ -124,17 +144,17 @@ func main() {
 	})
 
 	c.OnScraped(func(r *colly.Response) {
-		// how do get the studio name?
 		fmt.Println(r.Request.URL, " scraped!")
-		fmt.Println(r.Request.Body)
-		parseHTML(string(r.Body))
+		// fmt.Println(r.Request.Body)
+		schedule := parseHTML(string(r.Body), calendarID, schedule)
+		printSchedule(schedule)
 	})
-
 	baseURL := "https://app.acuityscheduling.com/schedule.php?action=showCalendar&fulldate=1&owner=30525417&template=weekly"
 	header := http.Header{}
 	header.Add("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8")
 	for typeName, calendar := range typeToCalendars {
 		body := generateBody(typeName, calendar.ID)
+		calendarID = calendar.ID
 		c.Request("POST", baseURL, body, nil, header)
 	}
 }

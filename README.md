@@ -22,3 +22,6 @@ typeToCalendars[58325156] = [[9673493, 'Studio 10', '', '544 Capp St. San Franci
 typeToCalendars[58325267] = [[9127354, 'Studio 12', '', '544 Capp St. San Francisco, CA 94110', '', 'America/Los_Angeles']  ];
 typeToCalendars[58325228] = [[9673015, 'Studio 11', '', '544 Capp St. San Francisco, CA 94110', '', 'America/Los_Angeles']  ];
 ```
+
+Run script
+`go run scraper.go`
