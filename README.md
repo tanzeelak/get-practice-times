@@ -27,7 +27,7 @@ Run script
 `go run scraper.go`
 
 TODOs
-- Reformat the times to not use military time
+- Order the dates
 - Figure out how to extract roomID instead of updating a function-scoped value
 - Investigate if I can get extract a link for each studio. If possible, add to Calendar object
 - Flatten schedule formatting

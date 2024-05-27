@@ -10,6 +10,7 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/gocolly/colly"
@@ -67,7 +68,7 @@ func parseHTML(htmlString string, roomID int, schedule map[string]map[string][]s
 		date := s.Parent().Find(".date-secondary").Text()
 		dayOfWeek := s.Parent().Find(".day-of-week").Text()
 
-		fullDate := fmt.Sprintf("Date: %s, %s", dayOfWeek, date)
+		fullDate := fmt.Sprintf("%s, %s", dayOfWeek, date)
 		// Now, find each time within this date
 		s.Find(".time-selection").Each(func(j int, timeSelection *goquery.Selection) {
 			timeValue, exists := timeSelection.Attr("value")
@@ -80,18 +81,23 @@ func parseHTML(htmlString string, roomID int, schedule map[string]map[string][]s
 }
 
 func updateMap(fullDate string, timeValue string, roomID int, schedule map[string]map[string][]string) map[string]map[string][]string {
-	time := strings.Split(timeValue, " ")[1]
+	militaryTime := strings.Split(timeValue, " ")[1]
+	t, err := time.Parse("15:04", militaryTime)
+	if err != nil {
+		fmt.Println("Error parsing time:", err)
+	}
+	standardTime := t.Format("3:04PM")
 	timeToStudios, ok := schedule[fullDate]
 	if !ok {
 		timeToStudios = make(map[string][]string)
 		schedule[fullDate] = timeToStudios
 	}
-	studios, ok := timeToStudios[time]
+	studios, ok := timeToStudios[standardTime]
 	if !ok {
 		studios = []string{}
-		timeToStudios[time] = studios
+		timeToStudios[standardTime] = studios
 	}
-	schedule[fullDate][time] = append(studios, typeToCalendars[roomID].Name)
+	schedule[fullDate][standardTime] = append(studios, typeToCalendars[roomID].Name)
 	return schedule
 }
 
