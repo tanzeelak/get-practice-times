@@ -26,12 +26,16 @@ typeToCalendars[58325228] = [[9673015, 'Studio 11', '', '544 Capp St. San Franci
 Run script
 `go run scraper.go`
 
+Omitted Rooms
+- 58324961: {9703524, "Studio 7"} -> Drumset
+- 54535652: {9651030, "Recital Hall"},
+- 58324504: {9650981, "Concert Hall"},
+
 TODOs
+- Incorporate a Redis Cache (just for fun!)
 - Order the dates
 - Figure out how to extract roomID instead of updating a function-scoped value
 - Investigate if I can get extract a link for each studio. If possible, add to Calendar object
 - Flatten schedule formatting
-- Remove unbookable studios
 - Accept an input time range
 - Accept an input date range
-- Incorporate a Redis Cache (just for fun!)
