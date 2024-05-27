@@ -3,6 +3,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -14,6 +15,7 @@ import (
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/gocolly/colly"
+	"github.com/redis/go-redis/v9"
 )
 
 type Calendar struct {
@@ -108,6 +110,26 @@ func printSchedule(schedule map[string]map[string][]string) {
 }
 
 func main() {
+	// SETUP REDIS
+	ctx := context.Background()
+	rdb := redis.NewClient(&redis.Options{
+		Addr:     "localhost:6379",
+		Password: "",
+		DB:       0,
+	})
+	// Ensure that the connection is properly closed gracefully
+	defer rdb.Close()
+
+	// Perform basic diagnostic to check if the connection is working
+	// Expected result > ping: PONG
+	// If Redis is not running, error case is taken instead
+	status, err := rdb.Ping(ctx).Result()
+	if err != nil {
+		log.Fatal("Error connecting to Redis:", err)
+	}
+	fmt.Println(status)
+
+	// SETUP COLLY
 	roomID := 0
 	schedule := map[string]map[string][]string{}
 
