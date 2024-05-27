@@ -18,6 +18,12 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
+var cacheExpiration = 21600 // 6 hours
+
+var ctx context.Context
+var rdb *redis.Client
+
+type Schedule = map[string]map[string][]string
 type Calendar struct {
 	ID   int
 	Name string
@@ -56,7 +62,7 @@ func generateBody(typeName int, calendarID int) *strings.Reader {
 	return strings.NewReader(body)
 }
 
-func parseHTML(htmlString string, roomID int, schedule map[string]map[string][]string) map[string]map[string][]string {
+func parseHTML(htmlString string, roomID int, schedule Schedule) Schedule {
 	doc, err := goquery.NewDocumentFromReader(strings.NewReader(htmlString))
 	if err != nil {
 		log.Fatal("Error loading HTML: ", err)
@@ -79,7 +85,7 @@ func parseHTML(htmlString string, roomID int, schedule map[string]map[string][]s
 	return schedule
 }
 
-func updateMap(fullDate string, timeValue string, roomID int, schedule map[string]map[string][]string) map[string]map[string][]string {
+func updateMap(fullDate string, timeValue string, roomID int, schedule Schedule) Schedule {
 	militaryTime := strings.Split(timeValue, " ")[1]
 	t, err := time.Parse("15:04", militaryTime)
 	if err != nil {
@@ -100,61 +106,70 @@ func updateMap(fullDate string, timeValue string, roomID int, schedule map[strin
 	return schedule
 }
 
-func printSchedule(schedule map[string]map[string][]string) {
+func printSchedule(schedule Schedule) {
 	jsonData, err := json.MarshalIndent(schedule, "", "    ")
 	if err != nil {
 		log.Fatalf("Error occurred during marshaling. Error: %s", err.Error())
 	}
 	// Print the JSON string
-	fmt.Println(string(jsonData))
+	stringifiedSchedule := string(jsonData)
+	statusCmd := rdb.Set(ctx, "schedule", stringifiedSchedule, time.Duration(cacheExpiration)*time.Second)
+	if err := statusCmd.Err(); err != nil {
+		fmt.Println("Error setting key:", err)
+	} else {
+		result, err := statusCmd.Result()
+		if err != nil {
+			fmt.Println("Error getting result:", err)
+		} else {
+			fmt.Println("Result:", result)
+		}
+	}
+	fmt.Println(stringifiedSchedule)
 }
 
 func main() {
 	// SETUP REDIS
-	ctx := context.Background()
-	rdb := redis.NewClient(&redis.Options{
+	ctx = context.Background()
+	rdb = redis.NewClient(&redis.Options{
 		Addr:     "localhost:6379",
 		Password: "",
 		DB:       0,
 	})
-	// Ensure that the connection is properly closed gracefully
-	defer rdb.Close()
-
-	// Perform basic diagnostic to check if the connection is working
-	// Expected result > ping: PONG
-	// If Redis is not running, error case is taken instead
 	status, err := rdb.Ping(ctx).Result()
 	if err != nil {
 		log.Fatal("Error connecting to Redis:", err)
 	}
 	fmt.Println(status)
 
-	// SETUP COLLY
-	roomID := 0
-	schedule := map[string]map[string][]string{}
+	// Ensure that the connection is properly closed gracefully
+	defer rdb.Close()
 
-	c := colly.NewCollector()
-
-	c.OnError(func(_ *colly.Response, err error) {
-		// fmt.Println("Something went wrong: ", err)
-	})
-
-	c.OnResponse(func(r *colly.Response) {
-		// fmt.Println("Page visited: ", r.Request.URL)
-	})
-
-	c.OnScraped(func(r *colly.Response) {
-		// fmt.Println(r.Request.URL, " scraped!")
-		// fmt.Println(r.Request.Body)
-		schedule = parseHTML(string(r.Body), roomID, schedule)
-	})
-	baseURL := "https://app.acuityscheduling.com/schedule.php?action=showCalendar&fulldate=1&owner=30525417&template=weekly"
-	header := http.Header{}
-	header.Add("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8")
-	for typeName, calendar := range typeToCalendars {
-		body := generateBody(typeName, calendar.ID)
-		roomID = typeName
-		c.Request("POST", baseURL, body, nil, header)
+	value, err := rdb.Get(ctx, "schedule").Result()
+	if err != nil {
+		fmt.Println("Error getting key: ", err)
 	}
-	printSchedule(schedule)
+
+	if value != "" {
+		fmt.Println("Cache Hit")
+		fmt.Println(value)
+	} else {
+		// SETUP COLLY
+		fmt.Println("Cache Miss")
+		roomID := 0
+		schedule := Schedule{}
+
+		c := colly.NewCollector()
+		c.OnScraped(func(r *colly.Response) {
+			schedule = parseHTML(string(r.Body), roomID, schedule) // update schedule with itself
+		})
+		baseURL := "https://app.acuityscheduling.com/schedule.php?action=showCalendar&fulldate=1&owner=30525417&template=weekly"
+		header := http.Header{}
+		header.Add("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8")
+		for typeName, calendar := range typeToCalendars {
+			body := generateBody(typeName, calendar.ID)
+			roomID = typeName
+			c.Request("POST", baseURL, body, nil, header)
+		}
+		printSchedule(schedule)
+	}
 }
