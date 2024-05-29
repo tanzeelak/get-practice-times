@@ -35,7 +35,7 @@ Omitted Rooms
 - 58324504: {9650981, "Concert Hall"},
 
 TODOs
-- Incorporate a Redis Cache (just for fun!)
+- Figure out how to extract roomID instead of updating a function-scoped value
 - Order the dates
 - Figure out how to extract roomID instead of updating a function-scoped value
 - Investigate if I can get extract a link for each studio. If possible, add to Calendar object
