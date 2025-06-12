@@ -9,6 +9,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -107,7 +108,32 @@ func updateMap(fullDate string, timeValue string, roomID int, schedule Schedule)
 }
 
 func printSchedule(schedule Schedule) {
-	jsonData, err := json.MarshalIndent(schedule, "", "    ")
+	// Create a sorted version of the schedule
+	sortedSchedule := make(map[string]map[string][]string)
+
+	// Get all dates and sort them
+	dates := make([]string, 0, len(schedule))
+	for date := range schedule {
+		dates = append(dates, date)
+	}
+
+	// Parse dates and sort them
+	sort.Slice(dates, func(i, j int) bool {
+		// Parse the dates (format: "Day, Month Date")
+		dateI, errI := time.Parse("Monday, January 2", dates[i])
+		dateJ, errJ := time.Parse("Monday, January 2", dates[j])
+		if errI != nil || errJ != nil {
+			return dates[i] < dates[j] // Fallback to string comparison if parsing fails
+		}
+		return dateI.Before(dateJ)
+	})
+
+	// Create sorted schedule
+	for _, date := range dates {
+		sortedSchedule[date] = schedule[date]
+	}
+
+	jsonData, err := json.MarshalIndent(sortedSchedule, "", "    ")
 	if err != nil {
 		log.Fatalf("Error occurred during marshaling. Error: %s", err.Error())
 	}
