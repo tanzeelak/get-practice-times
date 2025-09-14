@@ -4,11 +4,11 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
 	"net/url"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -107,12 +107,80 @@ func updateMap(fullDate string, timeValue string, roomID int, schedule Schedule)
 }
 
 func printSchedule(schedule Schedule) {
-	jsonData, err := json.MarshalIndent(schedule, "", "    ")
-	if err != nil {
-		log.Fatalf("Error occurred during marshaling. Error: %s", err.Error())
+	// Get all dates and sort them
+	dates := make([]string, 0, len(schedule))
+	for date := range schedule {
+		dates = append(dates, date)
 	}
-	// Print the JSON string
-	stringifiedSchedule := string(jsonData)
+
+	// Parse dates and sort them
+	sort.Slice(dates, func(i, j int) bool {
+		// Add current year to dates for proper parsing (format: "Day, Month Date")
+		currentYear := time.Now().Year()
+		dateWithYearI := fmt.Sprintf("%s, %d", dates[i], currentYear)
+		dateWithYearJ := fmt.Sprintf("%s, %d", dates[j], currentYear)
+
+		dateI, errI := time.Parse("Monday, January _2, 2006", dateWithYearI)
+		dateJ, errJ := time.Parse("Monday, January _2, 2006", dateWithYearJ)
+		if errI != nil || errJ != nil {
+			return dates[i] < dates[j] // Fallback to string comparison if parsing fails
+		}
+		return dateI.Before(dateJ)
+	})
+
+	// Build JSON manually to preserve order
+	var jsonBuilder strings.Builder
+	jsonBuilder.WriteString("{\n")
+
+	for i, date := range dates {
+		if i > 0 {
+			jsonBuilder.WriteString(",\n")
+		}
+
+		// Add the date key
+		jsonBuilder.WriteString(fmt.Sprintf("    \"%s\": {\n", date))
+
+		// Get all times for this date and sort them
+		times := make([]string, 0, len(schedule[date]))
+		for timeStr := range schedule[date] {
+			times = append(times, timeStr)
+		}
+
+		// Sort times chronologically
+		sort.Slice(times, func(i, j int) bool {
+			timeI, errI := time.Parse("3:04PM", times[i])
+			timeJ, errJ := time.Parse("3:04PM", times[j])
+			if errI != nil || errJ != nil {
+				return times[i] < times[j]
+			}
+			return timeI.Before(timeJ)
+		})
+
+		// Add each time slot
+		for j, timeStr := range times {
+			if j > 0 {
+				jsonBuilder.WriteString(",\n")
+			}
+
+			jsonBuilder.WriteString(fmt.Sprintf("        \"%s\": [", timeStr))
+
+			studios := schedule[date][timeStr]
+			for k, studio := range studios {
+				if k > 0 {
+					jsonBuilder.WriteString(", ")
+				}
+				jsonBuilder.WriteString(fmt.Sprintf("\"%s\"", studio))
+			}
+
+			jsonBuilder.WriteString("]")
+		}
+
+		jsonBuilder.WriteString("\n    }")
+	}
+
+	jsonBuilder.WriteString("\n}")
+
+	stringifiedSchedule := jsonBuilder.String()
 	statusCmd := rdb.Set(ctx, "schedule", stringifiedSchedule, time.Duration(cacheExpiration)*time.Second)
 	if err := statusCmd.Err(); err != nil {
 		fmt.Println("Error setting key:", err)
@@ -172,4 +240,6 @@ func main() {
 		}
 		printSchedule(schedule)
 	}
+	fmt.Println("\nBook a practice room: https://sfcmc.org/play/practice-studio-rehearsal-space-rentals/")
+	fmt.Println("Booking Code: FLUTEFILLEDFALL")
 }
