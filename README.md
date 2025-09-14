@@ -36,9 +36,8 @@ Omitted Rooms
 
 TODOs
 - Figure out how to extract roomID instead of updating a function-scoped value
-- Order the dates
-- Figure out how to extract roomID instead of updating a function-scoped value
 - Investigate if I can get extract a link for each studio. If possible, add to Calendar object
-- Flatten schedule formatting
 - Accept an input time range
 - Accept an input date range
+- Deploy to Vercel
+- Make mobile friendly
