@@ -13,7 +13,7 @@ The application follows a standard backend/frontend separation:
 ### Backend (`backend/server.go`)
 - **HTTP API Server**: Serves REST endpoints for rehearsal data
 - **Web Scraper**: Extracts data from CMC's Acuity Scheduling system  
-- **Redis Caching**: 6-hour cache to reduce API load
+- **Redis Caching**: 1-week cache to reduce API load
 - **JSON Output**: Chronologically sorted schedule data
 
 ### Frontend (`frontend/`)

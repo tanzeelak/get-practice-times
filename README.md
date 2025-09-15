@@ -6,16 +6,17 @@ A web application that scrapes and displays available rehearsal room slots from 
 ## Project Structure
 
 ```
-├── backend/          # Go API server
-│   ├── server.go     # Main server with scraping logic
-│   ├── go.mod        # Go dependencies
-│   └── go.sum        # Go dependency checksums
 ├── frontend/         # Static web frontend
 │   ├── index.html    # Main HTML page
 │   ├── styles.css    # CSS styling
 │   └── script.js     # JavaScript for API calls
-├── CLAUDE.md         # Development guidance
-└── README.md         # This file
+├── server.go         # Go server (API + static file serving)
+├── go.mod           # Go dependencies
+├── go.sum           # Go dependency checksums
+├── Procfile         # Heroku deployment config
+├── CLAUDE.md        # Development guidance
+├── DEPLOYMENT.md    # Heroku deployment guide
+└── README.md        # This file
 ```
 
 ## Quick Start
@@ -27,25 +28,30 @@ A web application that scrapes and displays available rehearsal room slots from 
 
 ### Development Setup
 
-1. **Start Redis:**
+1. **Start Redis (optional):**
    ```bash
    redis-server
    ```
 
-2. **Start the backend API:**
+2. **Start the server:**
    ```bash
-   cd backend
    go run server.go
    ```
-   Server will start at `http://localhost:8080`
+   Server will start at `http://localhost:8080` and serve both API and frontend
 
-3. **Open the frontend:**
-   Open `frontend/index.html` in your browser, or serve it with a local server:
-   ```bash
-   cd frontend
-   python3 -m http.server 3000
-   # Then open http://localhost:3000
-   ```
+3. **Open the app:**
+   Open `http://localhost:8080` in your browser
+
+### Production Deployment
+
+**Deploy to Heroku:**
+```bash
+heroku create your-app-name
+heroku buildpacks:set heroku/go
+git push heroku main
+```
+
+See [DEPLOYMENT.md](DEPLOYMENT.md) for detailed instructions.
 
 ## API Endpoints
 

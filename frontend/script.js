@@ -1,4 +1,5 @@
-const API_BASE_URL = 'http://localhost:8080';
+// Use current origin for production, localhost for development
+const API_BASE_URL = window.location.hostname === 'localhost' ? 'http://localhost:8080' : window.location.origin;
 
 let scheduleData = null;
 
@@ -172,11 +173,11 @@ function formatDate(dateString) {
     }
 }
 
-// Auto-refresh every 30 minutes
+// Auto-refresh once a week
 setInterval(() => {
     console.log('Auto-refreshing rehearsal data...');
     fetchRehearsals();
-}, 30 * 60 * 1000); // 30 minutes
+}, 7 * 24 * 60 * 60 * 1000); // 1 week
 
 // Add keyboard shortcuts
 document.addEventListener('keydown', function(event) {

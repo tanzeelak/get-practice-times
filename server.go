@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"os"
 	"sort"
 	"strconv"
 	"strings"
@@ -18,7 +19,7 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-var cacheExpiration = 21600 // 6 hours
+var cacheExpiration = 604800 // 1 week (7 days * 24 hours * 60 minutes * 60 seconds)
 
 var ctx context.Context
 var rdb *redis.Client
@@ -107,11 +108,13 @@ func updateMap(fullDate string, timeValue string, roomID int, schedule Schedule)
 }
 
 func getScheduleJSON() string {
-	// Check cache first
-	value, err := rdb.Get(ctx, "schedule").Result()
-	if err == nil && value != "" {
-		fmt.Println("Cache Hit")
-		return value
+	// Check cache first (if Redis is available)
+	if rdb != nil {
+		value, err := rdb.Get(ctx, "schedule").Result()
+		if err == nil && value != "" {
+			fmt.Println("Cache Hit")
+			return value
+		}
 	}
 
 	// Cache miss - scrape data
@@ -207,10 +210,12 @@ func getScheduleJSON() string {
 
 	stringifiedSchedule := jsonBuilder.String()
 	
-	// Cache the result
-	statusCmd := rdb.Set(ctx, "schedule", stringifiedSchedule, time.Duration(cacheExpiration)*time.Second)
-	if err := statusCmd.Err(); err != nil {
-		fmt.Println("Error setting key:", err)
+	// Cache the result (if Redis is available)
+	if rdb != nil {
+		statusCmd := rdb.Set(ctx, "schedule", stringifiedSchedule, time.Duration(cacheExpiration)*time.Second)
+		if err := statusCmd.Err(); err != nil {
+			fmt.Println("Error setting key:", err)
+		}
 	}
 
 	return stringifiedSchedule
@@ -244,32 +249,64 @@ func healthHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	// SETUP REDIS
+	// SETUP REDIS (optional for Heroku)
 	ctx = context.Background()
-	rdb = redis.NewClient(&redis.Options{
-		Addr:     "localhost:6379",
-		Password: "",
-		DB:       0,
-	})
 	
-	status, err := rdb.Ping(ctx).Result()
-	if err != nil {
-		log.Fatal("Error connecting to Redis:", err)
+	// Try to connect to Redis, but don't fail if it's not available
+	redisURL := os.Getenv("REDIS_URL")
+	if redisURL != "" {
+		opt, err := redis.ParseURL(redisURL)
+		if err != nil {
+			fmt.Printf("Failed to parse Redis URL: %v\n", err)
+		} else {
+			rdb = redis.NewClient(opt)
+			status, err := rdb.Ping(ctx).Result()
+			if err != nil {
+				fmt.Printf("Redis connection failed: %v\n", err)
+				rdb = nil
+			} else {
+				fmt.Println("Redis status:", status)
+			}
+		}
+	} else {
+		// Try local Redis for development
+		rdb = redis.NewClient(&redis.Options{
+			Addr:     "localhost:6379",
+			Password: "",
+			DB:       0,
+		})
+		_, err := rdb.Ping(ctx).Result()
+		if err != nil {
+			fmt.Println("Local Redis not available, running without cache")
+			rdb = nil
+		} else {
+			fmt.Println("Connected to local Redis")
+		}
 	}
-	fmt.Println("Redis status:", status)
 
-	// Ensure that the connection is properly closed gracefully
-	defer rdb.Close()
+	if rdb != nil {
+		defer rdb.Close()
+	}
 
 	// Setup HTTP routes
 	http.HandleFunc("/api/rehearsals", rehearsalsHandler)
 	http.HandleFunc("/health", healthHandler)
+	
+	// Serve static files from frontend directory
+	fs := http.FileServer(http.Dir("./frontend/"))
+	http.Handle("/", fs)
 
-	port := ":8080"
+	// Get port from environment variable (Heroku requirement)
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+
 	fmt.Printf("Server starting on port %s\n", port)
 	fmt.Println("API endpoints:")
 	fmt.Println("  GET /api/rehearsals - Get available rehearsal slots")
 	fmt.Println("  GET /health - Health check")
+	fmt.Println("  GET / - Frontend application")
 	
-	log.Fatal(http.ListenAndServe(port, nil))
+	log.Fatal(http.ListenAndServe(":"+port, nil))
 }
