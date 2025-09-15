@@ -5,34 +5,35 @@
 }
 
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    line-height: 1.6;
-    color: #333;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    line-height: 1.5;
+    color: #1a1a1a;
+    background: #fafafa;
     min-height: 100vh;
 }
 
 .container {
-    max-width: 1200px;
+    max-width: 800px;
     margin: 0 auto;
-    padding: 20px;
+    padding: 40px 20px;
 }
 
 header {
     text-align: center;
-    color: white;
-    margin-bottom: 30px;
+    margin-bottom: 40px;
 }
 
 header h1 {
-    font-size: 2.5rem;
-    margin-bottom: 10px;
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    font-size: 1.8rem;
+    font-weight: 500;
+    margin-bottom: 8px;
+    color: #1a1a1a;
 }
 
 header p {
-    font-size: 1.1rem;
-    opacity: 0.9;
+    font-size: 0.9rem;
+    color: #666;
+    font-weight: 400;
 }
 
 .controls {
@@ -40,71 +41,66 @@ header p {
     justify-content: space-between;
     align-items: center;
     background: white;
-    padding: 20px;
-    border-radius: 12px;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-    margin-bottom: 20px;
+    padding: 16px 20px;
+    border: 1px solid #e5e5e5;
+    margin-bottom: 24px;
     flex-wrap: wrap;
-    gap: 15px;
+    gap: 16px;
 }
 
 #refreshBtn {
-    background: #667eea;
+    background: #1a1a1a;
     color: white;
     border: none;
-    padding: 12px 24px;
-    border-radius: 8px;
+    padding: 8px 16px;
     cursor: pointer;
-    font-size: 1rem;
-    font-weight: 600;
-    transition: all 0.3s ease;
+    font-size: 0.9rem;
+    font-weight: 400;
+    transition: background-color 0.2s ease;
 }
 
 #refreshBtn:hover {
-    background: #5a6fd8;
-    transform: translateY(-2px);
+    background: #333;
 }
 
 #refreshBtn:disabled {
     background: #ccc;
     cursor: not-allowed;
-    transform: none;
 }
 
 .booking-info {
     display: flex;
     align-items: center;
-    gap: 20px;
+    gap: 16px;
     flex-wrap: wrap;
 }
 
 .booking-info p {
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     color: #666;
 }
 
 .book-btn {
-    background: #4CAF50;
+    background: #1a1a1a;
     color: white;
     text-decoration: none;
-    padding: 10px 20px;
-    border-radius: 6px;
-    font-weight: 600;
-    transition: all 0.3s ease;
+    padding: 8px 16px;
+    font-size: 0.85rem;
+    font-weight: 400;
+    transition: background-color 0.2s ease;
 }
 
 .book-btn:hover {
-    background: #45a049;
-    transform: translateY(-2px);
+    background: #333;
 }
 
 .error {
-    background: #ffebee;
-    color: #c62828;
-    padding: 15px;
-    border-radius: 8px;
-    border-left: 4px solid #c62828;
-    margin-bottom: 20px;
+    background: #fff5f5;
+    color: #d63031;
+    padding: 12px 16px;
+    border: 1px solid #fab1a0;
+    margin-bottom: 24px;
+    font-size: 0.9rem;
 }
 
 .hidden {
@@ -114,17 +110,17 @@ header p {
 .loading {
     text-align: center;
     padding: 60px 20px;
-    color: white;
+    color: #666;
 }
 
 .spinner {
-    border: 4px solid rgba(255,255,255,0.3);
-    border-top: 4px solid white;
+    border: 2px solid #f3f3f3;
+    border-top: 2px solid #666;
     border-radius: 50%;
-    width: 50px;
-    height: 50px;
+    width: 24px;
+    height: 24px;
     animation: spin 1s linear infinite;
-    margin: 0 auto 20px;
+    margin: 0 auto 16px;
 }
 
 @keyframes spin {
@@ -134,13 +130,12 @@ header p {
 
 .schedule-container {
     background: white;
-    border-radius: 12px;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    border: 1px solid #e5e5e5;
     overflow: hidden;
 }
 
 .day-card {
-    border-bottom: 1px solid #eee;
+    border-bottom: 1px solid #e5e5e5;
     padding: 0;
 }
 
@@ -149,29 +144,31 @@ header p {
 }
 
 .day-header {
-    background: #f8f9fa;
-    padding: 20px;
-    border-left: 4px solid #667eea;
+    background: #fafafa;
+    padding: 16px 20px;
     cursor: pointer;
-    transition: background-color 0.3s ease;
+    transition: background-color 0.2s ease;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    border-bottom: 1px solid #e5e5e5;
 }
 
 .day-header:hover {
-    background: #e9ecef;
+    background: #f0f0f0;
 }
 
 .day-header h3 {
     margin: 0;
-    color: #333;
-    font-size: 1.2rem;
+    color: #1a1a1a;
+    font-size: 1rem;
+    font-weight: 500;
 }
 
 .toggle-icon {
-    font-size: 1.2rem;
-    transition: transform 0.3s ease;
+    font-size: 0.8rem;
+    color: #666;
+    transition: transform 0.2s ease;
 }
 
 .day-header.expanded .toggle-icon {
@@ -194,10 +191,10 @@ header p {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    padding: 15px 0;
-    border-bottom: 1px solid #f0f0f0;
+    padding: 12px 0;
+    border-bottom: 1px solid #f5f5f5;
     flex-wrap: wrap;
-    gap: 10px;
+    gap: 12px;
 }
 
 .time-slot:last-child {
@@ -205,64 +202,69 @@ header p {
 }
 
 .time {
-    font-weight: 600;
-    color: #667eea;
-    font-size: 1rem;
-    min-width: 80px;
+    font-weight: 500;
+    color: #1a1a1a;
+    font-size: 0.9rem;
+    min-width: 70px;
 }
 
 .studios {
     flex: 1;
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
+    gap: 6px;
 }
 
 .studio {
-    background: #e8f2ff;
-    color: #1976d2;
-    padding: 6px 12px;
-    border-radius: 20px;
-    font-size: 0.85rem;
-    font-weight: 500;
-    border: 1px solid #bbdefb;
+    background: #f5f5f5;
+    color: #333;
+    padding: 4px 8px;
+    font-size: 0.8rem;
+    font-weight: 400;
+    border: 1px solid #e5e5e5;
 }
 
 footer {
     text-align: center;
-    color: white;
-    margin-top: 30px;
-    opacity: 0.8;
+    color: #666;
+    margin-top: 40px;
+    font-size: 0.85rem;
 }
 
 footer a {
-    color: white;
+    color: #1a1a1a;
+    text-decoration: none;
+}
+
+footer a:hover {
     text-decoration: underline;
 }
 
 /* Mobile Responsiveness */
 @media (max-width: 768px) {
     .container {
-        padding: 15px;
+        padding: 20px 16px;
     }
     
     header h1 {
-        font-size: 2rem;
+        font-size: 1.6rem;
     }
     
     .controls {
         flex-direction: column;
         text-align: center;
+        gap: 12px;
     }
     
     .booking-info {
         flex-direction: column;
-        gap: 10px;
+        gap: 8px;
     }
     
     .time-slot {
         flex-direction: column;
         align-items: flex-start;
+        gap: 8px;
     }
     
     .time {
@@ -271,16 +273,19 @@ footer a {
 }
 
 @media (max-width: 480px) {
+    .container {
+        padding: 16px 12px;
+    }
+    
     header h1 {
-        font-size: 1.8rem;
+        font-size: 1.4rem;
     }
     
-    .studios {
-        justify-content: flex-start;
+    .day-header {
+        padding: 12px 16px;
     }
     
-    .studio {
-        font-size: 0.8rem;
-        padding: 4px 8px;
+    .time-slots.expanded {
+        padding: 16px;
     }
 }
