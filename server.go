@@ -1,4 +1,4 @@
-// scraper.go
+// server.go
 
 package main
 
@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"os"
 	"sort"
 	"strconv"
 	"strings"
@@ -18,7 +19,7 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-var cacheExpiration = 21600 // 6 hours
+var cacheExpiration = 604800 // 1 week (7 days * 24 hours * 60 minutes * 60 seconds)
 
 var ctx context.Context
 var rdb *redis.Client
@@ -34,7 +35,7 @@ var typeToCalendars = map[int]Calendar{
 	54155578: {9651830, "Studio C"},
 	54535605: {9672985, "Studio D"},
 	58324342: {9672997, "Studio E"},
-	54535629: {9651036, "Cottage Studio"},
+	// 54535629: {9651036, "Cottage Studio"}, // Not currently bookable
 	58324623: {9673379, "Studio 1"},
 	58324707: {9673424, "Studio 2"},
 	58324742: {9673434, "Studio 3"},
@@ -106,7 +107,34 @@ func updateMap(fullDate string, timeValue string, roomID int, schedule Schedule)
 	return schedule
 }
 
-func printSchedule(schedule Schedule) {
+func getScheduleJSON() string {
+	// Check cache first (if Redis is available)
+	if rdb != nil {
+		value, err := rdb.Get(ctx, "schedule").Result()
+		if err == nil && value != "" {
+			fmt.Println("Cache Hit")
+			return value
+		}
+	}
+
+	// Cache miss - scrape data
+	fmt.Println("Cache Miss")
+	roomID := 0
+	schedule := Schedule{}
+
+	c := colly.NewCollector()
+	c.OnScraped(func(r *colly.Response) {
+		schedule = parseHTML(string(r.Body), roomID, schedule)
+	})
+	baseURL := "https://app.acuityscheduling.com/schedule.php?action=showCalendar&fulldate=1&owner=30525417&template=weekly"
+	header := http.Header{}
+	header.Add("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8")
+	for typeName, calendar := range typeToCalendars {
+		body := generateBody(typeName, calendar.ID)
+		roomID = typeName
+		c.Request("POST", baseURL, body, nil, header)
+	}
+
 	// Get all dates and sort them
 	dates := make([]string, 0, len(schedule))
 	for date := range schedule {
@@ -181,65 +209,104 @@ func printSchedule(schedule Schedule) {
 	jsonBuilder.WriteString("\n}")
 
 	stringifiedSchedule := jsonBuilder.String()
-	statusCmd := rdb.Set(ctx, "schedule", stringifiedSchedule, time.Duration(cacheExpiration)*time.Second)
-	if err := statusCmd.Err(); err != nil {
-		fmt.Println("Error setting key:", err)
-	} else {
-		result, err := statusCmd.Result()
-		if err != nil {
-			fmt.Println("Error getting result:", err)
-		} else {
-			fmt.Println("Result:", result)
+	
+	// Cache the result (if Redis is available)
+	if rdb != nil {
+		statusCmd := rdb.Set(ctx, "schedule", stringifiedSchedule, time.Duration(cacheExpiration)*time.Second)
+		if err := statusCmd.Err(); err != nil {
+			fmt.Println("Error setting key:", err)
 		}
 	}
-	fmt.Println(stringifiedSchedule)
+
+	return stringifiedSchedule
+}
+
+func rehearsalsHandler(w http.ResponseWriter, r *http.Request) {
+	// Enable CORS
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "GET, OPTIONS")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+	w.Header().Set("Content-Type", "application/json")
+
+	// Handle preflight OPTIONS request
+	if r.Method == "OPTIONS" {
+		w.WriteHeader(http.StatusOK)
+		return
+	}
+
+	if r.Method != "GET" {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	scheduleJSON := getScheduleJSON()
+	w.Write([]byte(scheduleJSON))
+}
+
+func healthHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	w.Write([]byte(`{"status": "ok", "service": "rehearsal-scraper"}`))
 }
 
 func main() {
-	// SETUP REDIS
+	// SETUP REDIS (optional for Heroku)
 	ctx = context.Background()
-	rdb = redis.NewClient(&redis.Options{
-		Addr:     "localhost:6379",
-		Password: "",
-		DB:       0,
-	})
-	status, err := rdb.Ping(ctx).Result()
-	if err != nil {
-		log.Fatal("Error connecting to Redis:", err)
-	}
-	fmt.Println(status)
-
-	// Ensure that the connection is properly closed gracefully
-	defer rdb.Close()
-
-	value, err := rdb.Get(ctx, "schedule").Result()
-	if err != nil {
-		fmt.Println("Error getting key: ", err)
-	}
-
-	if value != "" {
-		fmt.Println("Cache Hit")
-		fmt.Println(value)
-	} else {
-		// SETUP COLLY
-		fmt.Println("Cache Miss")
-		roomID := 0
-		schedule := Schedule{}
-
-		c := colly.NewCollector()
-		c.OnScraped(func(r *colly.Response) {
-			schedule = parseHTML(string(r.Body), roomID, schedule) // update schedule with itself
-		})
-		baseURL := "https://app.acuityscheduling.com/schedule.php?action=showCalendar&fulldate=1&owner=30525417&template=weekly"
-		header := http.Header{}
-		header.Add("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8")
-		for typeName, calendar := range typeToCalendars {
-			body := generateBody(typeName, calendar.ID)
-			roomID = typeName
-			c.Request("POST", baseURL, body, nil, header)
+	
+	// Try to connect to Redis, but don't fail if it's not available
+	redisURL := os.Getenv("REDIS_URL")
+	if redisURL != "" {
+		opt, err := redis.ParseURL(redisURL)
+		if err != nil {
+			fmt.Printf("Failed to parse Redis URL: %v\n", err)
+		} else {
+			rdb = redis.NewClient(opt)
+			status, err := rdb.Ping(ctx).Result()
+			if err != nil {
+				fmt.Printf("Redis connection failed: %v\n", err)
+				rdb = nil
+			} else {
+				fmt.Println("Redis status:", status)
+			}
 		}
-		printSchedule(schedule)
+	} else {
+		// Try local Redis for development
+		rdb = redis.NewClient(&redis.Options{
+			Addr:     "localhost:6379",
+			Password: "",
+			DB:       0,
+		})
+		_, err := rdb.Ping(ctx).Result()
+		if err != nil {
+			fmt.Println("Local Redis not available, running without cache")
+			rdb = nil
+		} else {
+			fmt.Println("Connected to local Redis")
+		}
 	}
-	fmt.Println("\nBook a practice room: https://sfcmc.org/play/practice-studio-rehearsal-space-rentals/")
-	fmt.Println("Booking Code: FLUTEFILLEDFALL")
+
+	if rdb != nil {
+		defer rdb.Close()
+	}
+
+	// Setup HTTP routes
+	http.HandleFunc("/api/rehearsals", rehearsalsHandler)
+	http.HandleFunc("/health", healthHandler)
+	
+	// Serve static files from frontend directory
+	fs := http.FileServer(http.Dir("./frontend/"))
+	http.Handle("/", fs)
+
+	// Get port from environment variable (Heroku requirement)
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+
+	fmt.Printf("Server starting on port %s\n", port)
+	fmt.Println("API endpoints:")
+	fmt.Println("  GET /api/rehearsals - Get available rehearsal slots")
+	fmt.Println("  GET /health - Health check")
+	fmt.Println("  GET / - Frontend application")
+	
+	log.Fatal(http.ListenAndServe(":"+port, nil))
 }

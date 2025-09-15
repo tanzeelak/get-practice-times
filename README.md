@@ -1,33 +1,66 @@
 
-Found this code on [CMC's website](https://sfcmc.org/events/event-space-rentals/) at `schedule.php/app.acuity.scheduling.com/schedule.php?owner=30525417`
+# CMC Rehearsal Room Scraper
+
+A web application that scrapes and displays available rehearsal room slots from the San Francisco Community Music Center (CMC).
+
+## Project Structure
 
 ```
-var typeToCalendars = new Array();
-typeToCalendars[58324142] = [[9651874, 'Studio B', '', '552 Capp St. San Francisco, CA 94110', '', 'America/Los_Angeles']  ];
-typeToCalendars[54155578] = [[9651830, 'Studio C', '', '552 Capp St. San Francisco, CA 94110', '', 'America/Los_Angeles']  ];
-typeToCalendars[54535605] = [[9672985, 'Studio D', '', '552 Capp St. San Francisco, CA 94110', '', 'America/Los_Angeles']  ];
-typeToCalendars[58324342] = [[9672997, 'Studio E', '', '552 Capp St. San Francisco, CA 94110', '', 'America/Los_Angeles']  ];
-typeToCalendars[54535629] = [[9651036, 'Cottage Studio', '', '552 Capp St. San Francisco, CA 94110', '', 'America/Los_Angeles']  ];
-typeToCalendars[54535652] = [[9651030, 'Recital Hall', '', '552 Capp St. San Francisco, CA 94110', '', 'America/Los_Angeles']  ];
-typeToCalendars[58324504] = [[9650981, 'Concert Hall', '', '544 Capp St. San Francisco, CA 94110', 'Concert Hall', 'America/Los_Angeles']  ];
-typeToCalendars[58324623] = [[9673379, 'Studio 1', '', '544 Capp St. San Francisco, CA 94110', '', 'America/Los_Angeles']  ];
-typeToCalendars[58324707] = [[9673424, 'Studio 2', '', '544 Capp St. San Francisco, CA 94110', '', 'America/Los_Angeles']  ];
-typeToCalendars[58324742] = [[9673434, 'Studio 3', '', '544 Capp St. San Francisco, CA 94110', '', 'America/Los_Angeles']  ];
-typeToCalendars[58324779] = [[9673444, 'Studio 4', '', '544 Capp St. San Francisco, CA 94110', '', 'America/Los_Angeles']  ];
-typeToCalendars[58324847] = [[9673455, 'Studio 5', '', '544 Capp St. San Francisco, CA 94110', '', 'America/Los_Angeles']  ];
-typeToCalendars[58324961] = [[9703524, 'Studio 7', '', '544 Capp St. San Francisco, CA 94110', '', 'America/Los_Angeles']  ];
-typeToCalendars[58324992] = [[9673461, 'Studio 8', '', '544 Capp St. San Francisco, CA 94110', '', 'America/Los_Angeles']  ];
-typeToCalendars[58325034] = [[9673482, 'Studio 9', '', '544 Capp St. San Francisco, CA 94110', '', 'America/Los_Angeles']  ];
-typeToCalendars[58325156] = [[9673493, 'Studio 10', '', '544 Capp St. San Francisco, CA 94110', '', 'America/Los_Angeles']  ];
-typeToCalendars[58325267] = [[9127354, 'Studio 12', '', '544 Capp St. San Francisco, CA 94110', '', 'America/Los_Angeles']  ];
-typeToCalendars[58325228] = [[9673015, 'Studio 11', '', '544 Capp St. San Francisco, CA 94110', '', 'America/Los_Angeles']  ];
+├── frontend/         # Static web frontend
+│   ├── index.html    # Main HTML page
+│   ├── styles.css    # CSS styling
+│   └── script.js     # JavaScript for API calls
+├── server.go         # Go server (API + static file serving)
+├── go.mod           # Go dependencies
+├── go.sum           # Go dependency checksums
+├── Procfile         # Heroku deployment config
+├── CLAUDE.md        # Development guidance
+├── DEPLOYMENT.md    # Heroku deployment guide
+└── README.md        # This file
 ```
 
-Start Redis
-`redis-server`
+## Quick Start
 
-Run script
-`go run scraper.go`
+### Prerequisites
+- Go 1.22.0+
+- Redis server
+- Modern web browser
+
+### Development Setup
+
+1. **Start Redis (optional):**
+   ```bash
+   redis-server
+   ```
+
+2. **Start the server:**
+   ```bash
+   go run server.go
+   ```
+   Server will start at `http://localhost:8080` and serve both API and frontend
+
+3. **Open the app:**
+   Open `http://localhost:8080` in your browser
+
+### Production Deployment
+
+**Deploy to Heroku:**
+```bash
+heroku create your-app-name
+heroku buildpacks:set heroku/go
+git push heroku main
+```
+
+See [DEPLOYMENT.md](DEPLOYMENT.md) for detailed instructions.
+
+## API Endpoints
+
+- `GET /api/rehearsals` - Returns available rehearsal slots as JSON
+- `GET /health` - Health check endpoint
+
+## Data Source
+
+Scrapes from [CMC's Acuity Scheduling system](https://sfcmc.org/events/event-space-rentals/) at `schedule.php/app.acuity.scheduling.com/schedule.php?owner=30525417`
 
 Omitted Rooms
 - 58324961: {9703524, "Studio 7"} -> Drumset

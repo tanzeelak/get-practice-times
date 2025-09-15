@@ -4,11 +4,23 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a Go-based web scraper that extracts rehearsal room availability from the San Francisco Community Music Center (CMC) website. The scraper fetches studio availability data from Acuity Scheduling and provides a JSON output with chronologically sorted dates and time slots.
+This is a full-stack web application that scrapes and displays rehearsal room availability from the San Francisco Community Music Center (CMC). It consists of a Go backend API that scrapes Acuity Scheduling data and a frontend web interface that displays the data in a user-friendly format.
 
 ## Architecture
 
-The application is a single-file Go program (`scraper.go`) with these key components:
+The application follows a standard backend/frontend separation:
+
+### Backend (`backend/server.go`)
+- **HTTP API Server**: Serves REST endpoints for rehearsal data
+- **Web Scraper**: Extracts data from CMC's Acuity Scheduling system  
+- **Redis Caching**: 1-week cache to reduce API load
+- **JSON Output**: Chronologically sorted schedule data
+
+### Frontend (`frontend/`)
+- **Static HTML/CSS/JS**: No build process required
+- **Responsive Design**: Mobile-friendly interface  
+- **AJAX API Calls**: Fetches data from backend API
+- **Interactive UI**: Collapsible day sections, auto-refresh
 
 ### Core Data Flow
 1. **Data Source**: Scrapes from CMC's Acuity Scheduling system at `schedule.php/app.acuity.scheduling.com/schedule.php?owner=30525417`
@@ -31,18 +43,32 @@ The scraper queries 14 different studios using hardcoded type/calendar ID pairs.
 - Redis server must be running: `redis-server`
 - Go 1.22.0+ required
 
-### Running the Scraper
+### Development Setup
 ```bash
-go run scraper.go
+# Start Redis
+redis-server
+
+# Start backend API (in backend/)
+cd backend
+go run server.go
+
+# Serve frontend (in frontend/)
+cd frontend
+python3 -m http.server 3000
+# Or just open index.html in browser
 ```
+
+### API Endpoints
+- `GET /api/rehearsals` - Returns available rehearsal slots as JSON
+- `GET /health` - Health check endpoint
 
 ### Cache Management
 - Clear cache: `redis-cli del schedule`
 - Check cache: `redis-cli get schedule`
 
-### Development
-- Run scraper: `go run scraper.go`
-- Dependencies are managed via `go.mod` - run `go mod tidy` if needed
+### Dependencies
+- Backend: Dependencies managed via `go.mod` - run `go mod tidy` if needed
+- Frontend: No build process, uses vanilla HTML/CSS/JS
 
 ## Key Implementation Details
 

@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CMC Rehearsal Room Availability</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>CMC Rehearsal Rooms</h1>
+            <p>San Francisco Community Music Center</p>
+        </header>
+
+        <div class="controls">
+            <button id="refreshBtn" onclick="fetchRehearsals()">
+                <span id="refreshText">Refresh</span>
+                <span id="loadingText" class="hidden">Loading...</span>
+            </button>
+            <div class="booking-info">
+                <p>Booking Code: <strong>FLUTEFILLEDFALL</strong></p>
+                <a href="https://sfcmc.org/play/practice-studio-rehearsal-space-rentals/" target="_blank" class="book-btn">
+                    Book a Room
+                </a>
+            </div>
+        </div>
+
+        <div class="legend">
+            <h4>Studio Types</h4>
+            <div class="legend-items">
+                <div class="legend-item">
+                    <span class="studio private">Private</span>
+                    <span class="legend-text">Studios 1, 2, 3, 4, 8, 10</span>
+                </div>
+                <div class="legend-item">
+                    <span class="studio group">Group</span>
+                    <span class="legend-text">Studios 5, 9, B, C, D, E</span>
+                </div>
+            </div>
+        </div>
+
+        <div id="error-message" class="error hidden"></div>
+        
+        <div id="schedule-container" class="schedule-container">
+            <div id="loading" class="loading">
+                <div class="spinner"></div>
+                <p>Loading rehearsal availability...</p>
+            </div>
+        </div>
+
+        <footer>
+            <p>Data refreshed weekly • <a href="https://sfcmc.org" target="_blank">Visit CMC Website</a></p>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

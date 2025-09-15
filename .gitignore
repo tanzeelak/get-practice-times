@@ -1,1 +1,24 @@
+# Redis files
 dump.rdb
+
+# Go binaries
+/bin/
+server
+scrape-rehearsals
+
+# Environment files
+.env
+.env.local
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
