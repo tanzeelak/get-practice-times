@@ -2,6 +2,16 @@ const API_BASE_URL = 'http://localhost:8080';
 
 let scheduleData = null;
 
+// Studio type classifications
+const PRIVATE_STUDIOS = ['Studio 1', 'Studio 2', 'Studio 3', 'Studio 4', 'Studio 8', 'Studio 10'];
+const GROUP_STUDIOS = ['Studio 5', 'Studio 9', 'Studio B', 'Studio C', 'Studio D', 'Studio E'];
+
+function getStudioType(studioName) {
+    if (PRIVATE_STUDIOS.includes(studioName)) return 'private';
+    if (GROUP_STUDIOS.includes(studioName)) return 'group';
+    return 'private'; // default fallback
+}
+
 // Initialize the app
 document.addEventListener('DOMContentLoaded', function() {
     fetchRehearsals();
@@ -106,8 +116,17 @@ function renderSchedule(data) {
                         <div class="studios">
                 `;
                 
-                studios.forEach(studio => {
-                    html += `<span class="studio">${studio}</span>`;
+                // Group studios by type
+                const privateStudios = studios.filter(studio => getStudioType(studio) === 'private');
+                const groupStudios = studios.filter(studio => getStudioType(studio) === 'group');
+                
+                // Display private studios first, then group studios
+                privateStudios.forEach(studio => {
+                    html += `<span class="studio private">${studio}</span>`;
+                });
+                
+                groupStudios.forEach(studio => {
+                    html += `<span class="studio group">${studio}</span>`;
                 });
                 
                 html += `

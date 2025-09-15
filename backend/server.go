@@ -34,7 +34,7 @@ var typeToCalendars = map[int]Calendar{
 	54155578: {9651830, "Studio C"},
 	54535605: {9672985, "Studio D"},
 	58324342: {9672997, "Studio E"},
-	54535629: {9651036, "Cottage Studio"},
+	// 54535629: {9651036, "Cottage Studio"}, // Not currently bookable
 	58324623: {9673379, "Studio 1"},
 	58324707: {9673424, "Studio 2"},
 	58324742: {9673434, "Studio 3"},
