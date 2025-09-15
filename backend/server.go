@@ -1,4 +1,4 @@
-// scraper.go
+// server.go
 
 package main
 
@@ -106,7 +106,32 @@ func updateMap(fullDate string, timeValue string, roomID int, schedule Schedule)
 	return schedule
 }
 
-func printSchedule(schedule Schedule) {
+func getScheduleJSON() string {
+	// Check cache first
+	value, err := rdb.Get(ctx, "schedule").Result()
+	if err == nil && value != "" {
+		fmt.Println("Cache Hit")
+		return value
+	}
+
+	// Cache miss - scrape data
+	fmt.Println("Cache Miss")
+	roomID := 0
+	schedule := Schedule{}
+
+	c := colly.NewCollector()
+	c.OnScraped(func(r *colly.Response) {
+		schedule = parseHTML(string(r.Body), roomID, schedule)
+	})
+	baseURL := "https://app.acuityscheduling.com/schedule.php?action=showCalendar&fulldate=1&owner=30525417&template=weekly"
+	header := http.Header{}
+	header.Add("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8")
+	for typeName, calendar := range typeToCalendars {
+		body := generateBody(typeName, calendar.ID)
+		roomID = typeName
+		c.Request("POST", baseURL, body, nil, header)
+	}
+
 	// Get all dates and sort them
 	dates := make([]string, 0, len(schedule))
 	for date := range schedule {
@@ -181,18 +206,41 @@ func printSchedule(schedule Schedule) {
 	jsonBuilder.WriteString("\n}")
 
 	stringifiedSchedule := jsonBuilder.String()
+	
+	// Cache the result
 	statusCmd := rdb.Set(ctx, "schedule", stringifiedSchedule, time.Duration(cacheExpiration)*time.Second)
 	if err := statusCmd.Err(); err != nil {
 		fmt.Println("Error setting key:", err)
-	} else {
-		result, err := statusCmd.Result()
-		if err != nil {
-			fmt.Println("Error getting result:", err)
-		} else {
-			fmt.Println("Result:", result)
-		}
 	}
-	fmt.Println(stringifiedSchedule)
+
+	return stringifiedSchedule
+}
+
+func rehearsalsHandler(w http.ResponseWriter, r *http.Request) {
+	// Enable CORS
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "GET, OPTIONS")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+	w.Header().Set("Content-Type", "application/json")
+
+	// Handle preflight OPTIONS request
+	if r.Method == "OPTIONS" {
+		w.WriteHeader(http.StatusOK)
+		return
+	}
+
+	if r.Method != "GET" {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	scheduleJSON := getScheduleJSON()
+	w.Write([]byte(scheduleJSON))
+}
+
+func healthHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	w.Write([]byte(`{"status": "ok", "service": "rehearsal-scraper"}`))
 }
 
 func main() {
@@ -203,43 +251,25 @@ func main() {
 		Password: "",
 		DB:       0,
 	})
+	
 	status, err := rdb.Ping(ctx).Result()
 	if err != nil {
 		log.Fatal("Error connecting to Redis:", err)
 	}
-	fmt.Println(status)
+	fmt.Println("Redis status:", status)
 
 	// Ensure that the connection is properly closed gracefully
 	defer rdb.Close()
 
-	value, err := rdb.Get(ctx, "schedule").Result()
-	if err != nil {
-		fmt.Println("Error getting key: ", err)
-	}
+	// Setup HTTP routes
+	http.HandleFunc("/api/rehearsals", rehearsalsHandler)
+	http.HandleFunc("/health", healthHandler)
 
-	if value != "" {
-		fmt.Println("Cache Hit")
-		fmt.Println(value)
-	} else {
-		// SETUP COLLY
-		fmt.Println("Cache Miss")
-		roomID := 0
-		schedule := Schedule{}
-
-		c := colly.NewCollector()
-		c.OnScraped(func(r *colly.Response) {
-			schedule = parseHTML(string(r.Body), roomID, schedule) // update schedule with itself
-		})
-		baseURL := "https://app.acuityscheduling.com/schedule.php?action=showCalendar&fulldate=1&owner=30525417&template=weekly"
-		header := http.Header{}
-		header.Add("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8")
-		for typeName, calendar := range typeToCalendars {
-			body := generateBody(typeName, calendar.ID)
-			roomID = typeName
-			c.Request("POST", baseURL, body, nil, header)
-		}
-		printSchedule(schedule)
-	}
-	fmt.Println("\nBook a practice room: https://sfcmc.org/play/practice-studio-rehearsal-space-rentals/")
-	fmt.Println("Booking Code: FLUTEFILLEDFALL")
+	port := ":8080"
+	fmt.Printf("Server starting on port %s\n", port)
+	fmt.Println("API endpoints:")
+	fmt.Println("  GET /api/rehearsals - Get available rehearsal slots")
+	fmt.Println("  GET /health - Health check")
+	
+	log.Fatal(http.ListenAndServe(port, nil))
 }
